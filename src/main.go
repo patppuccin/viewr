@@ -1,7 +1,16 @@
 package main
 
-import "fmt"
+import (
+	"github.com/kardianos/service"
+	"github.com/patppuccin/viewr/src/cmd"
+	"github.com/patppuccin/viewr/src/config"
+)
 
 func main() {
-	fmt.Println("Hello from VIEWR!")
+	if service.Interactive() {
+		cmd.Execute()
+	} else {
+		config.Load("", nil)
+		// TODO: Set up handling for service
+	}
 }

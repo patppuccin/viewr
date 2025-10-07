@@ -1,0 +1,15 @@
+# Viewr Configuration File
+
+# Server Configuration
+server:
+  logLevel: info
+  port: 5567
+  address: 127.0.0.1
+
+# Path Configuration
+paths:
+  - name: SMB Share 1
+    path: /home/user/Documents/smb-share-1
+    disable: true
+  - name: SMB Share 2
+    path: /home/user/Documents/smb-share-2

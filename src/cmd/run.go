@@ -1,12 +1,16 @@
 package cmd
 
 import (
-	"strconv"
+	"context"
+	"os"
+	"os/signal"
 	"strings"
+	"syscall"
 
 	"github.com/patppuccin/viewr/src/config"
 	"github.com/patppuccin/viewr/src/constants"
 	"github.com/patppuccin/viewr/src/out"
+	"github.com/patppuccin/viewr/src/server"
 	"github.com/spf13/cobra"
 )
 
@@ -20,7 +24,15 @@ var runCmd = &cobra.Command{
 		logLevel := config.GlobalConfig.Server.LogLevel
 		port := config.GlobalConfig.Server.Port
 		address := config.GlobalConfig.Server.Address
-		out.Logger.Info("Running Viewr with log level: " + logLevel + " on port: " + strconv.Itoa(port) + " and address: " + address)
+
+		ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+		defer cancel()
+
+		if err := server.Run(ctx, logLevel, address, port, true); err != nil {
+			out.Logger.Error("Server encountered an error: " + err.Error())
+			os.Exit(1)
+		}
+
 	},
 }
 

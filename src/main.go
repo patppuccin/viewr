@@ -4,6 +4,7 @@ import (
 	"github.com/kardianos/service"
 	"github.com/patppuccin/viewr/src/cmd"
 	"github.com/patppuccin/viewr/src/config"
+	"github.com/patppuccin/viewr/src/server"
 )
 
 func main() {
@@ -11,6 +12,6 @@ func main() {
 		cmd.Execute()
 	} else {
 		config.Load("", nil)
-		// TODO: Set up handling for service
+		server.RunServerService()
 	}
 }

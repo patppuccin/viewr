@@ -1,13 +1,13 @@
 package out
 
 import (
-	"fmt"
 	"io"
 	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/patppuccin/viewr/src/constants"
+	"github.com/patppuccin/viewr/src/helpers"
 	"github.com/rs/zerolog"
 	"gopkg.in/natefinch/lumberjack.v2"
 
@@ -85,7 +85,7 @@ func NewStructuredLogger(logLevel string, logToConsole bool) (*zerolog.Logger, e
 
 	rootDir, err := os.Executable()
 	if err != nil {
-		return nil, fmt.Errorf("failed to resolve root path: %w", err)
+		return nil, helpers.SafeErr("failed to resolve root path", err)
 	}
 	rootPath := filepath.Dir(rootDir)
 

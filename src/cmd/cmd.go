@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"fmt"
 	"os"
 
 	"github.com/patppuccin/viewr/src/config"
@@ -24,7 +23,7 @@ const (
 )
 
 var (
-	flagConfigInit      string
+	flagConfigInit      bool
 	flagConfigValidate  bool
 	flagConfigOverwrite bool
 	flagRunLogLevel     string
@@ -67,7 +66,7 @@ func init() {
 
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
-		fmt.Println("Error:", err)
+		os.Stdout.WriteString("Error: " + err.Error() + "\n")
 		os.Exit(1)
 	}
 }

@@ -24,3 +24,9 @@ const AssetOGImageURL = "assets/images/og.png"
 // CLI Configurations ////////////////////////////
 
 var LogLevels = []string{"debug", "info", "warn", "error"}
+
+// App Context Keys ////////////////////////////
+
+type CtxKey int
+
+const AppCtxKey CtxKey = iota

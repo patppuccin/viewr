@@ -1,0 +1,5 @@
+{"level":"info","time":"2025-10-08 16:22:56","message":"initializing Viewr v"}
+{"level":"info","time":"2025-10-08 16:22:56","message":"configuration source: D:\\04-Projects\\viewr\\viewr-config.yaml"}
+{"level":"info","time":"2025-10-08 16:22:56","message":"server is running at 127.0.0.1:5567"}
+{"level":"warn","time":"2025-10-08 16:23:02","message":"initiating server shutdown"}
+{"level":"info","time":"2025-10-08 16:23:02","message":"viewr server shut down after 5.3005717s"}

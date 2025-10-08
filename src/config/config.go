@@ -10,13 +10,14 @@ import (
 	"strings"
 
 	"github.com/patppuccin/viewr/src/helpers"
+	"github.com/patppuccin/viewr/src/include"
 	"github.com/patppuccin/viewr/src/models"
 	"github.com/spf13/pflag"
 	"go.yaml.in/yaml/v3"
 )
 
 var (
-	GlobalConfig    models.AppConfig
+	GlobalConfig    *models.AppConfig
 	GlobalConfigSrc string
 	GlobalConfigErr error
 )
@@ -24,7 +25,7 @@ var (
 func Load(configFilePath string, flags *pflag.FlagSet) {
 
 	// Default configuration — always valid
-	GlobalConfig = models.AppConfig{
+	GlobalConfig = &models.AppConfig{
 		Server: models.ServerConfig{
 			LogLevel: "info",
 			Port:     5567,
@@ -49,19 +50,13 @@ func Load(configFilePath string, flags *pflag.FlagSet) {
 		GlobalConfigErr = helpers.SafeErr("invalid config path - "+configFilePath, err)
 	}
 
-	// Try loading YAML file
-	if data, err := os.ReadFile(absPath); err == nil {
-		decoder := yaml.NewDecoder(bytes.NewReader(data))
-		decoder.KnownFields(true)
-
-		if err := decoder.Decode(&GlobalConfig); err != nil {
-			GlobalConfigErr = helpers.SafeErr("error parsing YAML config", err)
-		}
-
-		GlobalConfigSrc = absPath
-	} else if !os.IsNotExist(err) {
-		GlobalConfigErr = helpers.SafeErr("error reading config file", err)
+	cfg, cfgSrc, err := readYAMLConfig(absPath)
+	if err != nil {
+		GlobalConfigErr = err
+		return
 	}
+	GlobalConfig = &cfg
+	GlobalConfigSrc = cfgSrc
 
 	// Track & handle per-field Overrides
 	configOverrides := map[string]string{}
@@ -123,4 +118,97 @@ func Load(configFilePath string, flags *pflag.FlagSet) {
 		}
 		GlobalConfigSrc += " (overrides: " + strings.Join(overrides, ", ") + ")"
 	}
+}
+
+func Validate(configFilePath string) (string, error) {
+	if configFilePath == "" {
+		if rootPath, err := helpers.GetRootPath(); err == nil {
+			configFilePath = filepath.Join(rootPath, "viewr-config.yaml")
+		} else {
+			return "", helpers.SafeErr("unable to resolve the application root path", err)
+		}
+	}
+
+	absPath, err := filepath.Abs(configFilePath)
+	if err != nil {
+		return "", helpers.SafeErr("invalid config path - "+configFilePath, err)
+	}
+
+	_, cfgSrc, err := readYAMLConfig(absPath)
+	if err != nil {
+		return "", err
+	}
+
+	return cfgSrc, nil
+}
+
+func ExportTemplate(destPath string, overwrite bool) (string, error) {
+
+	// Handle default destination path
+	if destPath == "" {
+		if rootPath, err := helpers.GetRootPath(); err == nil {
+			destPath = filepath.Join(rootPath, "viewr-config-template.yaml")
+		} else {
+			return "", helpers.SafeErr("unable to resolve the application root path", err)
+		}
+	}
+
+	// Handle overwrite protection
+	if helpers.DoesYAMLFileExist(destPath) && !overwrite {
+		return "", helpers.SafeErr("file already exists at "+destPath+" (overwrite disabled)", nil)
+	}
+
+	// Ensure parent directories exist
+	if err := os.MkdirAll(filepath.Dir(destPath), 0755); err != nil {
+		return "", helpers.SafeErr("failed to create parent directories to "+destPath, err)
+	}
+
+	// Write default config
+	if err := os.WriteFile(destPath, include.DefaultConfig, 0644); err != nil {
+		return "", helpers.SafeErr("error writing to dest template file at "+destPath, err)
+	}
+
+	// Return destination path & no error
+	return destPath, nil
+
+}
+
+// Local helpers
+
+func readYAMLConfig(configFilePath string) (models.AppConfig, string, error) {
+	var cfg models.AppConfig
+
+	// Resolve to absolute path
+	absPath, err := filepath.Abs(configFilePath)
+	if err != nil {
+		return cfg, "", helpers.SafeErr("invalid config path: "+configFilePath, err)
+	}
+
+	// Verify file existence before reading
+	info, err := os.Stat(absPath)
+	if err != nil {
+		if os.IsNotExist(err) {
+			// Graceful fallback: config file missing, return empty config
+			return cfg, "", nil
+		}
+		return cfg, "", helpers.SafeErr("failed to access config file", err)
+	}
+	if info.IsDir() {
+		return cfg, "", helpers.SafeErr("config path points to a directory", nil)
+	}
+
+	// Read file contents
+	data, err := os.ReadFile(absPath)
+	if err != nil {
+		return cfg, "", helpers.SafeErr("failed to read config file", err)
+	}
+
+	// Strict YAML decoding
+	decoder := yaml.NewDecoder(bytes.NewReader(data))
+	decoder.KnownFields(true)
+	if err := decoder.Decode(&cfg); err != nil {
+		return cfg, "", helpers.SafeErr("failed to parse YAML config", err)
+	}
+
+	return cfg, absPath, nil
 }

@@ -1,11 +1,12 @@
 package helpers
 
 import (
-	"fmt"
+	"errors"
 	"net"
 	"os"
 	"path/filepath"
 	"slices"
+	"strconv"
 	"strings"
 
 	"github.com/patppuccin/viewr/src/constants"
@@ -20,7 +21,7 @@ var (
 func init() {
 	p, err := os.Executable()
 	if err != nil {
-		execErr = fmt.Errorf("failed to resolve current executable path: %w", err)
+		execErr = errors.Join(errors.New("failed to resolve current executable path"), err)
 		return
 	}
 	execPath = p
@@ -47,9 +48,9 @@ func GetRootPath() (string, error) {
 
 func SafeErr(userMsg string, internalErr error) error {
 	if IsDevMode() && internalErr != nil {
-		return fmt.Errorf("%s: %w", userMsg, internalErr)
+		return errors.Join(errors.New(userMsg), internalErr)
 	}
-	return fmt.Errorf("%s", userMsg)
+	return errors.New(userMsg)
 }
 
 func IsValidLogLevel(level string) bool {
@@ -83,4 +84,47 @@ func IsValidAddress(addr string) bool {
 		return false
 	}
 	return true
+}
+
+func CheckTCPBind(addr string, port int) error {
+	var errs []string
+
+	// Validate address
+	if !IsValidAddress(addr) {
+		errs = append(errs, "invalid address: "+addr+" (must be valid IP or hostname)")
+	}
+
+	// Validate port
+	if !IsValidPort(port) {
+		errs = append(errs, "invalid port: "+strconv.Itoa(port)+" (must be between 1–65535)")
+	}
+
+	// Combine validation errors if any
+	if len(errs) > 0 {
+		return SafeErr("invalid bind parameters: "+strings.Join(errs, "; "), nil)
+	}
+
+	// Try binding to address
+	hostPort := net.JoinHostPort(addr, strconv.Itoa(port))
+	listener, err := net.Listen("tcp", hostPort)
+	if err != nil {
+		return SafeErr("failed to bind to "+hostPort, err)
+	}
+	defer func() {
+		_ = listener.Close()
+	}()
+
+	return nil
+}
+
+func DoesYAMLFileExist(path string) bool {
+	info, err := os.Stat(path)
+	if err != nil {
+		return false
+	}
+	if info.IsDir() {
+		return false
+	}
+	ext := strings.ToLower(filepath.Ext(path))
+	return ext == ".yaml" || ext == ".yml"
 }

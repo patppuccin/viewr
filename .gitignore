@@ -1,30 +1,44 @@
-# VIEWR Gitignore Configuration
+# ==== VIEWR Gitignore Configuration =======================
 
-# Frontend dependencies
-src/include/assets
-
-# Binaries for programs and plugins
+# ---- Go Build Artifacts ----------------------------------
 *.exe
 *.exe~
 *.dll
 *.so
 *.dylib
-
-# Test binary, built with `go test -c`
 *.test
-
-# Code coverage profiles and other test artifacts
 *.out
-coverage.*
 *.coverprofile
+coverage.*
 profile.cov
-
-# Go workspace file
 go.work
 go.work.sum
+bin/
+build/
+dist/
 
-# env file
-.env
+# ---- Frontend Build and Runtime Artifacts ----------------
+src/include/assets/
+node_modules/
+*.map
 
-# logs
+# ---- Local Tools & Runtime Artifacts ---------------------
+tools/
 logs/
+*.log
+
+# ---- Environment & Config Files --------------------------
+.env
+.env.*
+!.env.example
+
+# ---- Editor & Platform Specific Artifacts ----------------
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+
+# ---- Temporary & Cache -----------------------------------
+.cache/
+.tmp/

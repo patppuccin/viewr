@@ -1,7 +1,7 @@
 # VIEWR Gitignore Configuration
 
 # Frontend dependencies
-node_modules/
+src/include/assets
 
 # Binaries for programs and plugins
 *.exe

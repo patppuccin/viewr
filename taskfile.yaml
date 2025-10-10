@@ -1,0 +1,82 @@
+# ==== Viewr Taskfile Configuration ========================
+
+# ---- Version Pinning ---------------------------------------
+version: "3"
+
+# ---- Define Environment Variables --------------------------
+vars:
+  APP_NAME: Viewr
+  APP_VERSION: "1.0"
+  DIST_DIR: "./dist"
+  BANNER: 'echo -e "\033[1;33m[$(echo {{.APP_NAME}})]\033[0m"'
+
+# ---- Task Definitions --------------------------------------
+tasks:
+  # Lists all available tasks
+  default:
+    desc: List all available tasks
+    silent: true
+    cmds:
+      - task --list
+
+  # Cleans and verifies Go module dependencies
+  tidy:
+    desc: Tidy up the {{.APP_NAME}} project
+    silent: true
+    cmds:
+      - "{{.BANNER}} Tidying up project modules"
+      - go mod tidy
+      - go mod verify
+      - echo
+
+  # Installs required tools and prepares the environment
+  setup:
+    desc: Prepare the environment for {{.APP_NAME}}
+    silent: true
+    cmds:
+      - "{{.BANNER}} Running setup scripts"
+      - |
+        {{if eq OS "windows"}}
+        pwsh -ExecutionPolicy Bypass -File scripts/windows/01-setup.ps1
+        {{else}}
+        bash scripts/unix/01-setup.sh
+        {{end}}
+
+  # Compiles and bundles project assets, builds the executable
+  build:
+    desc: Build project binaries and assets
+    silent: true
+    cmds:
+      - "{{.BANNER}} Building project"
+      - |
+        {{if eq OS "windows"}}
+        pwsh -ExecutionPolicy Bypass -File scripts/windows/02-build.ps1
+        {{else}}
+        bash scripts/unix/02-build.sh
+        {{end}}
+
+  # Packages the build artifacts for release & distribution
+  package:
+    desc: Package release artifacts for {{.APP_NAME}}
+    silent: true
+    cmds:
+      - "{{.BANNER}} Packaging project"
+      - |
+        {{if eq OS "windows"}}
+        pwsh -ExecutionPolicy Bypass -File scripts/windows/03-package.ps1
+        {{else}}
+        bash scripts/unix/03-package.sh
+        {{end}}
+
+  # Removes artifacts and temporary files
+  cleanup:
+    desc: Clean up build artifacts and temporary files
+    silent: true
+    cmds:
+      - "{{.BANNER}} Cleaning up"
+      - |
+        {{if eq OS "windows"}}
+        pwsh -ExecutionPolicy Bypass -File scripts/windows/04-cleanup.ps1
+        {{else}}
+        bash scripts/unix/04-cleanup.sh
+        {{end}}

@@ -5,8 +5,8 @@
 param ()
 
 $ErrorActionPreference = 'Continue'
-
 $RootDir = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
+$env:TAILWIND_DISABLE_WARNING = "true"
 
 # ---- Helpers and utilities -------------------------------
 function Write-ConsoleLog {
@@ -27,13 +27,26 @@ function Write-ConsoleLog {
 
 Write-ConsoleLog -Level INF "Building the project..."
 
-Write-ConsoleLog -Level INF "Bundling the assets..."
-$AssetsDir = Join-Path $RootDir "src/include/assets"
-$StaticDir = Join-Path $RootDir "src/web/static"
-New-Item -ItemType Directory -Force -Path $AssetsDir | Out-Null
-Copy-Item -Path (Join-Path $StaticDir '*') -Destination $AssetsDir -Recurse -Force
+# Step 01: Build TailwindCSS
+Write-ConsoleLog INF "Building TailwindCSS..."
+$TWExec = Join-Path $RootDir "tools\tailwind.exe"
+$TWEntrypointPath = Join-Path $RootDir ".\src\web\app.css"
+$TWBuildPath = Join-Path $RootDir ".\src\include\assets\styles\global.min.css"
+if (Test-Path $TWExec -PathType Leaf -ErrorAction SilentlyContinue) {
+    Write-Host ""
+    & $TWExec -i $TWEntrypointPath -o $TWBuildPath --minify
+    if ($LASTEXITCODE -ne 0) {
+        Write-ConsoleLog -Level ERR "TailwindCSS build failed"
+        exit $LASTEXITCODE
+    }
+    Write-Host ""
+}
+else {
+    Write-ConsoleLog -Level ERR "TailwindCSS binary not found at $Tailwind"
+    exit 1
+}
 
-
+# Step 02: Build templates with a-h/templ
 Write-ConsoleLog -Level INF "Building templates with a-h/templ"
 Write-Host ""
 & tools/templ.exe generate

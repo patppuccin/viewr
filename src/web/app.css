@@ -4,11 +4,11 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
-@plugin "../libs/daisyui/core.mjs" {
+@plugin "./daisyui-core.js" {
     themes: viewrlight --default, viewrdark --prefersdark;
 }
 
-@plugin "../libs/daisyui/theme.mjs" {
+@plugin "./daisyui-theme.js" {
     name: "viewrlight";
     default: true;
     prefersdark: false;
@@ -43,7 +43,7 @@
     --noise: 0;
 }
 
-@plugin "daisyui/theme" {
+@plugin "./daisyui-theme.js" {
     name: "viewrdark";
     default: false;
     prefersdark: true;

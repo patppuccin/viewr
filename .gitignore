@@ -18,11 +18,11 @@ build/
 dist/
 
 # ---- Frontend Build and Runtime Artifacts ----------------
-src/include/assets/
 node_modules/
 *.map
 
 # ---- Local Tools & Runtime Artifacts ---------------------
+src/include/assets/styles/
 tools/
 logs/
 *.log

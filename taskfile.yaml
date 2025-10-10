@@ -8,7 +8,7 @@ vars:
   APP_NAME: Viewr
   APP_VERSION: "1.0"
   DIST_DIR: "./dist"
-  BANNER: 'echo -e "\033[1;33m[$(echo {{.APP_NAME}})]\033[0m"'
+  BANNER: 'echo -e "\033[1;33m$\033[0m"'
 
 # ---- Task Definitions --------------------------------------
 tasks:
@@ -48,9 +48,10 @@ tasks:
     silent: true
     cmds:
       - "{{.BANNER}} Building project"
+      - echo
       - |
         {{if eq OS "windows"}}
-        pwsh -ExecutionPolicy Bypass -File scripts/windows/02-build.ps1
+        pwsh -ExecutionPolicy Bypass -NoProfile -File scripts/windows/02-build.ps1
         {{else}}
         bash scripts/unix/02-build.sh
         {{end}}
